@@ -1,506 +1,110 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <!-- py-script stylesheet and scripts -->
-        <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-        <link rel="stylesheet" href="style.css" />
-
-        <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-
-        <script>
-            var downloadFile = "/results.json";
-            var userContent = "";
-            var userContentPaste = "";
-            var currentCAE = "";
-
-            alert('Welcome to the Learning Outcome Alignment Demo Webpage!\n\nThe following webpage executes Python code using py-script within your browser.\n\nPlease do not refresh this page once you click \"Ok\".\n\nThe site may take up to 60 seconds to load, depending on your browser and system.')
-
-            const filename = downloadFile;
-            let postingData = {};
-
-            const downloadButton = document.getElementById('downloadButton');
-
-            const saveFile = async (blob, suggestedName) => {
-            // Feature detection. The API needs to be supported
-            // and the app not run in an iframe.
-            const supportsFileSystemAccess =
-                'showSaveFilePicker' in window &&
-                (() => {
-                try {
-                    return window.self === window.top;
-                } catch {
-                    return false;
-                }
-                })();
-            // If the File System Access API is supported…
-            if (supportsFileSystemAccess) {
-                try {
-                // Show the file save dialog.
-                const handle = await showSaveFilePicker({
-                    suggestedName,
-                });
-                // Write the blob to the file.
-                const writable = await handle.createWritable();
-                await writable.write(blob);
-                await writable.close();
-                return;
-                } catch (err) {
-                // Fail silently if the user has simply canceled the dialog.
-                if (err.name !== 'AbortError') {
-                    console.error(err.name, err.message);
-                    return;
-                }
-                }
-            }
-            // Fallback if the File System Access API is not supported…
-            // Create the blob URL.
-            const blobURL = URL.createObjectURL(blob);
-            // Create the `<a download>` element and append it invisibly.
-            const a = document.createElement('a');
-            a.href = blobURL;
-            a.download = suggestedName;
-            a.style.display = 'none';
-            document.body.append(a);
-            // Click the element.
-            a.click();
-            // Revoke the blob URL and remove the element.
-            setTimeout(() => {
-                URL.revokeObjectURL(blobURL);
-                a.remove();
-            }, 1000);
-            };
-
-            async function savingFile(){
-                let jsonData = {"title": pyscript.interpreter.globals.get('jobtitle_o'), 
-                            "skills": pyscript.interpreter.globals.get('skills_o'),
-                            "classified": pyscript.interpreter.globals.get('classified_o'),
-                            "outcomes": pyscript.interpreter.globals.get('outcomes_o'),
-                            "overallMatch": pyscript.interpreter.globals.get('overallMatch_o')
-                        };
-
-                postingData = jsonData;
-                console.log(postingData);
-
-                //const blob = new Blob([postingData], { type: 'text/plain' });
-                const blob = new Blob([JSON.stringify(postingData, null, 2)], {type: "application/json",});
-                console.log(blob);
-                await saveFile(blob, filename);
-            };
-
-            async function savingAssessments(){
-                let outcomes = {"outcomes": pyscript.interpreter.globals.get('ASSESSMENT_OUTCOMES')};
-                console.log(outcomes);
-
-                //const blob = new Blob([postingData], { type: 'text/plain' });
-                const blob = new Blob([JSON.stringify(outcomes, null, 2)], {type: "application/json",});
-                await saveFile(blob, "/assessmentOutcomes.txt");
-            };
-
-
-            function executePython() {
-                console.log(document.getElementById("textInput").value);
-
-                pyodide.buttonExecution(document.getElementById("textInput").value);
-            };
-
-            function clearBox(elementID){
-
-                while (elementID.firstChild) {
-                    elementID.removeChild(elementID.firstChild);
-                }
-
-                let element = document.getElementById(elementID).querySelector('div');
-                element.innerHTML = "";
-
-                document.getElementById(elementID).innerHTML = "";
-
-            };
-            function clearAllBoxes(){
-                clearBox('display-write');
-                clearBox('skillsColumnHeader');
-                clearBox('classifyColumnHeader');
-                clearBox('outcomeColumnHeader');
-                clearBox('alignmentColumnHeader');
-                clearBox('skillsColumn');
-                clearBox('classifyColumn');
-                clearBox('outcomeColumn');
-                clearBox('alignmentSubColumn');
-                clearBox('alignmentColumn');
-                //clearBox('analyticInfo');
-            };
-            
-            // when "hideTerminal" button is pressed...
-            function hideShowTerminal() {
-                if ( document.getElementById("pythonTerminal").getAttribute("hidden") ){
-                    document.getElementById("pythonTerminal").removeAttribute("hidden");
-                }else{
-                    document.getElementById("pythonTerminal").setAttribute("hidden", "hidden");
-                }
-            };
-
-            // when "hideShowAboutUs" button is pressed...
-            function hideShowAboutUs() {
-                if ( document.getElementById("contactDiv").getAttribute("hidden") ){
-                    document.getElementById("contactDiv").removeAttribute("hidden");
-                }else{
-                    document.getElementById("contactDiv").setAttribute("hidden", "hidden");
-                }
-            };
-
-            function showEverything(){
-                var divList = ["display-write", "skillsColumnHeader", "classifyColumnHeader", "outcomeColumnHeader", "alignmentColumnHeader", "skillsColumn", "classifyColumn", "outcomeColumn", "alignmentColumn", "alignmentSubColumn"];
-                var arrayLength = divList.length;
-                for (var i = 0; i < arrayLength; i++) {
-                    document.getElementById(divList[i]).removeAttribute("hidden");
-                }
-            };
-
-            function hideEverything(){
-                var divList = ["display-write", "skillsColumnHeader", "classifyColumnHeader", "outcomeColumnHeader", "alignmentColumnHeader", "skillsColumn", "classifyColumn", "outcomeColumn", "alignmentColumn", "alignmentSubColumn"];
-                var arrayLength = divList.length;
-                for (var i = 0; i < arrayLength; i++) {
-                    document.getElementById(divList[i]).setAttribute("hidden", "hidden");
-                }
-            };
-
-            // when "isolate" button(s) are pressed...
-            function hideEverythingBut(show) {
-                //set variables
-                var elem = show.id
-                var divList = ["display-write", "skillsColumnHeader", "classifyColumnHeader", "outcomeColumnHeader", "alignmentColumnHeader", "skillsColumn", "classifyColumn", "outcomeColumn", "alignmentColumn", "alignmentSubColumn"];
-                
-                // show everything, if any button clicked twice.
-                if(elem == "isoPosting"){
-                    elem = ["display-write"];
-                    if(document.getElementById(divList[1]).getAttribute("hidden")){
-                        showEverything();
-                    }
-                }else if(elem == "isoStep1"){
-                    elem = ["skillsColumnHeader", "skillsColumn"];
-                    if(document.getElementById(divList[0]).getAttribute("hidden")){
-                        showEverything();
-                    }
-                }else if(elem == "isoStep2"){
-                    elem = ["classifyColumnHeader", "classifyColumn"];
-                    if(document.getElementById(divList[0]).getAttribute("hidden")){
-                        showEverything();
-                    }
-                }else if(elem == "isoStep3"){
-                    elem = ["outcomeColumnHeader", "outcomeColumn"];
-                    if(document.getElementById(divList[0]).getAttribute("hidden")){
-                        showEverything();
-                    }
-                }else if(elem == "isoStep4"){
-                    elem = ["alignmentColumnHeader", "alignmentColumn", "alignmentSubColumn"];
-                    if(document.getElementById(divList[0]).getAttribute("hidden")){
-                        showEverything();
-                    }
-                }else{
-                    hideEverything();
-                    return;
-                }
-
-                var arrayLength = elem.length;
-                for (var i = 0; i < arrayLength; i++) {
-                    var index = divList.indexOf(elem[i]);
-                    if (index > -1) { // only splice array when item is found
-                        divList.splice(index, 1); // 2nd parameter means remove one item only
-                    }                
-                }
-
-                var arrayLength = divList.length;
-                for (var i = 0; i < arrayLength; i++) {
-                    document.getElementById(divList[i]).setAttribute("hidden", "hidden");
-                }
-
-                var arrayLength = elem.length;
-                for (var i = 0; i < arrayLength; i++) {
-                    document.getElementById(elem[i]).removeAttribute("hidden");
-                }
-            };
-    
-            // when "Apply changes" button is pressed...
-            function refreshCAE() {
-                showEverything();
-            };
-            // when "Apply changes" button is pressed...
-            function viewCAE() {
-                clearDiv();
-
-                var e = document.getElementById("showAllOptions");
-                var value = e.value;
-                var text = e.options[e.selectedIndex].text;
-                currentCAE = text;
-
-                if (text == "CAE-1"){
-                    var assessments = pyscript.interpreter.globals.get('CAE1_assessments');
-                    assessments = "<h4>Example Assessment(s) from CAE-1</h4> <br>" + assessments;
-                    assessments = assessments.split("\',").join("<br>")
-
-                    document.getElementById("display-write").innerHTML = assessments;
-                }else if(text == "CAE-2"){
-                    var assessments = pyscript.interpreter.globals.get('CAE2_assessments');
-                    assessments = "<h4>Example Assessment(s) from CAE-2</h4> <br>" + assessments;
-                    assessments = assessments.split("\',").join("<br>")
-
-                    document.getElementById("display-write").innerHTML = assessments;
-                }else if(text == "CAE-1 Outcomes"){
-                    var outcomes = pyscript.interpreter.globals.get('CAE1_outcomes');
-
-                    outcomes = "<h4>Example Outcomes(s) from CAE-1</h4>" + outcomes;
-
-                    outcomes = outcomes.split("[").join("<br>")
-                    outcomes = outcomes.split(",\'],").join("<br>")
-                    outcomes = outcomes.split("\', \'").join("<br>")
-                    outcomes = outcomes.split("\'").join("")
-
-                    document.getElementById("display-write").innerHTML = outcomes;
-
-                }else if(text == "CAE-2 Outcomes"){
-                    var outcomes = pyscript.interpreter.globals.get('CAE2_outcomes');
-                    outcomes = "<h4>Example Outcomes(s) from CAE-2</h4>" + outcomes;
-
-                    outcomes = outcomes.split("[").join("<br>")
-                    outcomes = outcomes.split(",\'],").join("<br>")
-                    outcomes = outcomes.split("\', \'").join("<br>")
-                    outcomes = outcomes.split("\'").join("")
-
-                    document.getElementById("display-write").innerHTML = outcomes;
-                }else{
-                    document.getElementById("display-write").innerHTML = "No CAE-3 Institution yet.";
-                }
-            };
-
-            function clearDiv() {
-                // access the div element and use the replaceChildren() method to clear the div content
-                const divList = ["display-write", "skillsColumnHeader", "classifyColumnHeader", "outcomeColumnHeader", "alignmentColumnHeader", "skillsColumn", "classifyColumn", "outcomeColumn", "alignmentColumn", "alignmentSubColumn"];
-                for (i in divList) {
-                    let div = document.getElementById(divList[i]);
-                    div.replaceChildren();
-                }
-                window.location.href='#top';
-            };
-
-            function processUserContent(){
-                var fileToLoad = document.getElementById("myFile").files[0];
-
-                var fileReader = new FileReader();
-                fileReader.onload = function(fileLoadedEvent){
-                    var textFromFileLoaded = fileLoadedEvent.target.result;
-                    document.getElementById("display-write").innerHTML = textFromFileLoaded;
-                    userContent = textFromFileLoaded;
-                };
-                fileReader.readAsText(fileToLoad, "UTF-8");
-                console.log(userContent);
-            }
-
-            function processUserContentPaste(){
-                var pastedText = document.getElementById("pasteBox").value;
-                document.getElementById("display-write").innerHTML = pastedText;
-                userContentPaste = pastedText;
-                console.log(userContentPaste);
-            }
-
-            function openTab(evt, cityName) {
-                // Declare all variables
-                var i, tabcontent, tablinks;
-
-                // Get all elements with class="tabcontent" and hide them
-                tabcontent = document.getElementsByClassName("tabcontent");
-                for (i = 0; i < tabcontent.length; i++) {
-                    tabcontent[i].style.display = "none";
-                }
-
-                // Get all elements with class="tablinks" and remove the class "active"
-                tablinks = document.getElementsByClassName("tablinks");
-                for (i = 0; i < tablinks.length; i++) {
-                    tablinks[i].className = tablinks[i].className.replace(" active", "");
-                }
-
-                // Show the current tab, and add an "active" class to the button that opened the tab
-                document.getElementById(cityName).style.display = "block";
-                evt.currentTarget.className += " active";
-            }
-
-            function setSubHeight(){
-                var parentHeight = document.getElementById('alignmentSubColumn').clientHeight;
-                if (parentHeight > 500) {
-                    document.getElementById('alignmentSubColumn').style.overflowY = "auto";
-                } else {
-                    document.getElementById('alignmentSubColumn').style.overflowY = "none";
-                }
-            }
-        </script>        
-    </head>
-
-    <body style="background-color:lightgray;">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPNC: Collection and Compilation of Careers - Online Demo Tool</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <link rel="icon" type="image/x-icon" href="SkillsTool-FrontEnd-main\eaglelogo.png" />
+    <script src="javascript.js" type="text/javascript"></script>
+</head>
+<body>
+    <header>
+        
         <h1>CPNC: Collection and Compilation of Careers - Online Demo Tool</h1>
         <h3>The University of North Texas (UNT-CPNC)</h3>
-        <hr style="border: 1px solid">
+    </header>
 
-        <div>
-            <p style="float: left; width: 50%; font-size: 24px;">Introduction</p>
-            <p style="float: left; width: 50%; font-size: 24px;">About Us</p>
-        </div>
+    <div class="container">
+        <div class="tab-container">
+            <div class="tab">
+                <button class="tablinks active" onclick="openTab(event, 'Home')">Home</button>
+                <button class="tablinks" onclick="openTab(event, 'ExampleData')">Example Data</button>
+                <button class="tablinks" onclick="openTab(event, 'CustomData')">Custom Data</button>
+                <button class="tablinks" onclick="openTab(event, 'Analysis')">Analysis</button>
+                <button class="tablinks" onclick="openTab(event, 'About')">About Us</button>
+            </div>
 
-        <div>
-            <p style="float: left; width: 50%; font-size: 16px;">
-                This tool enables you to view entry-level job postings, then parse and analyze those postings -- in real time. 
-                A set a learning outcomes is created from each posting, then compared with a pre-loaded set of outcomes directly sourced 
-                from CAE Institutions (Center for Academic Excellence). Get started with the demo by choosing from one of our examples or with your own custom data!  
-            </p>
-            <p style="float: left; width: 50%; font-size: 16px;">
-                This webpage presents the Collection and Compilation of Careers Demo Tool developed by Tyler Parks, with Dr. Ram Dantu, Leslie Delval, Thomas McCullough  
+            <div id="Home" class="tabcontent" style="display:block;">
+                <h2>Welcome to the CPNC Demo Tool</h2>
+                <p>This tool enables you to view entry-level job postings, then parse and analyze those postings in real time. 
+                A set of learning outcomes is created from each posting, then compared with a pre-loaded set of outcomes directly sourced 
+                from CAE Institutions (Center for Academic Excellence).</p>
+                <p>Get started by choosing either the Example Data or Custom Data tab!</p>
+                <p><i>NOTE: This demo is a work in-progress.</i></p>
+            </div>
+
+            <div id="ExampleData" class="tabcontent">
+                <h2>Try using our example data!</h2>
+                <p><i>Click the button below to fetch and analyze a new job posting:</i></p>
+                <button id="newPosting" onclick="fetchAndAnalyzeExample();" class="btn">
+                    Fetch and Analyze New Job Posting
+                </button>
+            </div>
+
+            <div id="CustomData" class="tabcontent">
+                <h2>Use your own custom posting!</h2>
+                <p><i>Upload a job posting file or paste your own text below:</i></p>
+                <p><b>.TXT files only!</b></p>
+                <form>
+                    <input type="file" id="myFile" name="filename">
+                    <button id="submitFileButton" type="button" onclick="processAndAnalyzeUserContent();" class="btn">Submit File & Analyze</button>
+                    <p>OR</p>
+                    <input type="text" id="pasteBox" name="pasteText" placeholder="Paste custom data here.">
+                    <button id="submitPasteButton" type="button" onclick="processAndAnalyzeUserContentPaste();" class="btn">Submit Pasted Text & Analyze</button>
+                </form>
+            </div>
+
+            <div id="Analysis" class="tabcontent">
+                <h2>Job Posting Analysis</h2>
+                <div id="alert-container"></div>
+                <div id="display-write"></div>
+                <div id="analyticInfo" class="row">
+                    <div id="skillsColumnHeader" class="column"></div>
+                    <div id="classifyColumnHeader" class="column"></div>
+                    <div id="outcomeColumnHeader" class="column"></div>
+                    <div id="alignmentColumnHeader" class="column"></div>
+                    <div id="skillsColumn" class="column"></div>
+                    <div id="classifyColumn" class="column"></div>
+                    <div id="outcomeColumn" class="column"></div>
+                    <div id="alignmentColumn" class="column"></div>
+                    <div id="alignmentSubColumn" class="column"></div>
+                </div>
+                <div class="result-actions">
+                    <button id="downloadButton" onclick="savingFile();" class="btn">Download Analysis</button>
+                    <a id="proxyButton" target="_blank" href="https://colab.research.google.com/drive/1D7sVCu5fpnZTcnDUd01XVcswxm4dLjHE?usp=sharing" class="btn">Send to Database</a>
+                </div>
+            </div>
+
+            <div id="About" class="tabcontent">
+                <h2>About Us</h2>
+                <p>This webpage demonstrates the Learning Outcome Alignment Tool developed by Tyler Parks, with Dr. Ram Dantu, Leslie Delval, Thomas McCullough  
                 and other peers, at the University of North Texas' Network Security Lab (UNT NSL). Also, in collaboration with the Competency Lab, NIST/NICE, 
-                California State University: San Bernadino (CSUSB), and other organizations.
-            </p>
-            <i>NOTE: This demo is a work in-progress.</i>
+                California State University: San Bernadino (CSUSB), and other organizations.</p>
+            </div>
         </div>
 
-        <hr style="border: 2px solid">
-
-        <!-- Tab links -->
-        <div class="tab">
-            <button class="tablinks" onclick="openTab(event, 'exampleTab')">Try using our example data!</button>
-            <button class="tablinks" onclick="openTab(event, 'customTab')">Use your own custom posting!</button>
-        </div>
-        
-        <!-- Tab content -->
-        <div id="exampleTab" class="tabcontent">
-            <p style="width: 75%; font-size: 18px;">
-                <i>Execute the below buttons sequentially!</i>
-            </p>
-            
-            <!-- pull new posting -->
-            <button id="newPosting" onclick="clearDiv();" py-click="buttonExecution()" class="py-button" style="background-color: lightsalmon; border-color: black; color: black">
-                1. Fetch a new Job Posting
-            </button>
-            →
-            <!-- download file -->
-            <button id="downloadButton" onclick="savingFile();" class="py-button" style="text-decoration: none; background-color: orange; border-color: black; color: black">
-                2. Save Results
-            </button>
-            →
-            <!--  
-            <button id="downloadassess" onclick="savingAssessments();" class="py-button" style="text-decoration: none; background-color: orange; border-color: black; color: black">
-                Save Assessments
-            </button>
-            -->
-    
-            <!-- send to proxy -->
-            <a id="proxyButton" target="_blank" href="https://colab.research.google.com/drive/1D7sVCu5fpnZTcnDUd01XVcswxm4dLjHE?usp=sharing" class="py-button" style="background-color: darkorange; border-color: black; color: black">
-                3. Send Results to CNC
-            </a>
-        </div>
-        
-        <div id="customTab" class="tabcontent">
-            <p style="width: 75%; font-size: 18px;">
-                <i>Upload and Submit a job posting of your own below, then execute the buttons sequentially!</i>
-                <b>***.TXT only***</b>
-            </p>
-    
-            <form>
-                <input type="file" id="myFile" name="filename">
-                <button id="submitFileButton" type="button" onclick="clearDiv();processUserContent();" style="margin-right: 20px;">Submit</button>
-                OR
-                <input type="text" id="pasteBox" name="pasteText" placeholder="Paste custom data here." style="margin-left: 20px;">
-                <button id="submitFileButton" type="button" onclick="clearDiv();processUserContentPaste();">Submit</button>
-            </form>
-
-            <br>
-            
-            <button type='button' id="processCustom" onclick="clearDiv();" py-click="customButtonExecution()" class="py-button" style="background-color: lightsalmon; border-color: black; color: black">
-                1. Process Custom Input
-            </button>   
-            →
-            <!-- download file -->
-            <button id="downloadButton" onclick="savingFile();" class="py-button" style="text-decoration: none; background-color: orange; border-color: black; color: black">
-                2. Download Analysis
-            </button>
-            →
-            <!-- send to proxy -->
-            <a id="proxyButton" target="_blank" href="https://colab.research.google.com/drive/1D7sVCu5fpnZTcnDUd01XVcswxm4dLjHE?usp=sharing" class="py-button" style="background-color: darkorange; border-color: black; color: black">
-                3. Send it to Database
-            </a>
-        </div>
-
-        <br>
-
-        <hr style="border: 2px solid">
         <h3>Demo Tool Flow Diagram</h3>
-        <div class=".img-container">
-            <img src="flow.PNG" alt="Flow">
+        <div class="img-container">
+            <img src="flow.PNG" alt="Flow Diagram">
         </div>
-        <div class=".btn-container">
-            <button onclick="hideEverythingBut(this)" id="isoPosting" class="py-button" style="margin-left: 0px;">Isolate Posting</button>
-            <button onclick="hideEverythingBut(this)" id="isoStep1" class="py-button" style="margin-left: 105px">Isolate Step 1</button>
-            <button onclick="hideEverythingBut(this)" id="isoStep2" class="py-button" style="margin-left: 105px">Isolate Step 2</button>
-            <button onclick="hideEverythingBut(this)" id="isoStep3" class="py-button" style="margin-left: 100px">Isolate Step 3</button>
-            <button onclick="hideEverythingBut(this)" id="isoStep4" class="py-button" style="margin-left: 105px">Isolate Step 4</button>
-
-            <select style="margin-left: 65px;" id="showAllOptions" name="Select CAE">
-                <option value="CAE1" selected>CAE-1</option>
-                <option value="CAE1">CAE-1 Outcomes</option>
-                <option value="CAE1">CAE-2</option>
-                <option value="CAE1">CAE-2 Outcomes</option>
-                <option value="CAE2">CAE-3</option>
-                <option value="CAE3">CAE-3 Outcomes</option>
-            </select>
-            
-            <button onclick="refreshCAE()" py-click="changeCAEAssessments()" class="py-button" style="background-color: green; border-color: black; color: white;">
-                Apply
-            </button>
-            <button onclick="viewCAE()" class="py-button" style="background-color: green; border-color: black; color: white;">
-                View
-            </button>
-        </div>
-        <br>
-        <hr style="border: 2px solid">
-
-        <h3>Job Posting Analysis</h3>
-
-        <div id="display-write"></div>
-
-        <div id="analyticInfo" class="row">
-            <div id="skillsColumnHeader" class="column" style="font-size: 24px;"></div>
-            <div id="classifyColumnHeader" class="column" style="font-size: 24px;"></div>
-            <div id="outcomeColumnHeader" class="column" style="font-size: 24px;"></div>
-            <div id="alignmentColumnHeader" class="column" style="font-size: 24px;"></div>
-            <hr>
-            <div id="skillsColumn" class="column" style="font-size: 20px;"></div>
-            <div id="classifyColumn" class="column" style="font-size: 20px;"></div>
-            <div id="outcomeColumn" class="column" style="font-size: 20px;"></div>
-            <div id="alignmentColumn" class="column" style="font-size: 36px;"></div>
-            <div id="alignmentSubColumn" class="column" style="font-size: 20px;"></div>
-        </div>
-
-        <hr style="border: 2px solid">
 
         <div>
-            <h3>Python Output Terminal</h3>
-            <button onclick="hideShowTerminal()" id="hideTerminal">Hide/Show Terminal</button>
-            <button onclick="hideShowAboutUs()" id="hideAbout">About Us</button>
-
+            <button onclick="hideShowTerminal()" id="hideTerminal" class="btn">Toggle Python Terminal</button>
         </div>
         <div id="pythonTerminal" hidden>
-            <py-terminal>
+            <py-terminal></py-terminal>
         </div>
+    </div>
 
-        <hr style="border: 2px solid">
+    <py-config>
+        packages = ["pandas", "yake", "scikit-learn", "fuzzywuzzy", "numpy"]
+    </py-config>
+    
+    <py-script src="https://raw.githubusercontent.com/NSL-Skills/SkillsTool/refs/heads/main/end2end.py"></py-script>
 
-        <div id="contactDiv" hidden>
-            <h3>About Us</h3>
-            <p style="width: 75%">
-                This webpage demonstrates the Learning Outcome Alignment Tool developed by Tyler Parks, with Dr. Ram Dantu, Leslie Delval, Thomas McCullough  
-                and other peers, at the University of North Texas' Network Security Lab (UNT NSL). 
-            </p>
-        </div>
-        <hr style="border: 2px solid">
-
-        <py-config>
-            packages = ["pandas", "yake", "scikit-learn", "fuzzywuzzy", "numpy"]
-        </py-config>
-        
-        <py-script src="https://raw.githubusercontent.com/NSL-Skills/SkillsTool/refs/heads/main/end2end.py"></py-script>
-    </body>
+    
+</body>
 </html>
