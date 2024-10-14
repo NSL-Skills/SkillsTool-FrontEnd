@@ -1,57 +1,178 @@
-/* Style the tab */
+:root {
+  --unt-green: #00853E;
+  --unt-white: #FFFFFF;
+  --unt-light-gray: #f4f4f4;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--unt-white);
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  flex-grow: 1;
+}
+
+header {
+  background: var(--unt-green);
+  color: var(--unt-white);
+  padding: 1rem 0;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  margin-bottom: 0.5rem;
+}
+
+header h3 {
+  margin-top: 0;
+}
+
+.tab-container {
+  margin-top: 20px;
+}
+
 .tab {
-    overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
-    display: inline-block;
-  }
-  
-  /* Style the buttons that are used to open the tab content */
-  .tab button {
-    background-color: inherit;
-    float: left;
-    border: 2px black;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 32px;
-    transition: 0.3s;
-  }
-  
-  /* Change background color of buttons on hover */
-  .tab button:hover {
-    background-color: #ababab;
-  }
-  
-  /* Create an active/current tablink class */
-  .tab button.active {
-    background-color: #737373;
-    border: 2px black;
-  }
-  
-  /* Style the tab content */
-  .tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-  }
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: var(--unt-light-gray);
+  display: flex;
+  justify-content: center;
+}
 
-/* Image Container */
+.tab button {
+  background-color: inherit;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 17px;
+  flex-grow: 1;
+}
+
+.tab button:hover {
+  background-color: #ddd;
+}
+
+.tab button.active {
+  background-color: var(--unt-green);
+  color: var(--unt-white);
+}
+
+.tabcontent {
+  display: none;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-top: none;
+  background-color: var(--unt-white);
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: var(--unt-green);
+  color: var(--unt-white);
+  text-decoration: none;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin: 5px;
+}
+
+.btn:hover {
+  background: #006633;
+}
+
 .img-container {
-    text-align: center;
-    display: block;
-    left: 50%;
+  text-align: center;
+  margin: 20px 0;
 }
 
-/* Three column layout */
+.img-container img {
+  max-width: 100%;
+  height: auto;
+}
+
+#analyticInfo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
 .column {
-    float: left;
-    width: 25.00%;
+  flex: 1;
+  margin: 10px;
+  padding: 15px;
+  background: var(--unt-light-gray);
+  border-radius: 5px;
 }
 
-/* Clear floats after the columns */
-.row:after {
-    content: "";
-    display: table;
-    clear: both;
+.result-actions {
+  position: sticky;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+#pythonTerminal {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: var(--unt-light-gray);
+}
+
+form {
+  margin-bottom: 20px;
+}
+
+input[type="file"], input[type="text"] {
+  margin-bottom: 10px;
+  padding: 5px;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tab {
+    flex-direction: column;
+  }
+  
+  .tab button {
+    width: 100%;
+  }
+
+  .column {
+    flex-basis: 100%;
+  }
 }
